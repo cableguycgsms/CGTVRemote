@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.github.cableguycgsms</groupId>
+  <artifactId>RemoteSetu</artifactId>
+  <version>1.0</version>
+  <packaging>pom</packaging>
+  <description>The RemoteSetu project is a mobile application that allows users to control their Smart TVs and OTT platforms (such as Netflix, Prime Video, YouTube, etc.) directly from their smartphone. It eliminates the dependency on physical remotes by providing a universal, feature-rich virtual remote interface with intuitive navigation</description>
+</project>
