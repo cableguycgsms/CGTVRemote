@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
@@ -17,7 +18,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
@@ -34,12 +34,13 @@ public class RemoteController {
 
     @SuppressLint("StaticFieldLeak")
     private static RemoteController instance;
-    private AdbClient adbClient;
 
     private Socket mSocket;
     private Context appContext;    // Store Application context
     private Activity currentActivity;  // Track top Activity for focus, nav, etc
-    public Controls remoteControls; // callbacks
+
+//    private Controls remoteControls = new Controls(); // callbacks
+    public Controls remoteControls = new Controls(); // callbacks
 
     public static RemoteController getInstance() {
         if (instance == null) {
@@ -51,17 +52,6 @@ public class RemoteController {
     // Initialize socket ONCE with Application context
     public void initSocket(Context context) {
         this.appContext = context.getApplicationContext();
-
-        if (remoteControls == null) {
-            remoteControls = new Controls(appContext);
-        }
-
-        if (adbClient == null) {
-            remoteControls = new Controls(appContext);
-            adbClient = remoteControls.getAdbClient();
-            adbClient.connect(DeviceUtils.getDeviceIp(appContext), 5555);
-        }
-
         if (mSocket == null || !mSocket.connected()) {
             connectSocket();
         }
@@ -83,6 +73,7 @@ public class RemoteController {
             opts.webSocketFactory = getUnsafeOkHttpClient();
 
 //            mSocket = IO.socket("https://remotesetu.in:4678", opts);
+//            mSocket = IO.socket("https://remotesetu.in:5466", opts);
             try {
                 mSocket = IO.socket(new URI(RemoteCallback.getRemoteSocketURL()), opts);
             } catch (URISyntaxException e) {
@@ -110,14 +101,6 @@ public class RemoteController {
                 } catch (Exception e) {
                     Log.e(TAG, "Auth error", e);
                 }
-            });
-
-            mSocket.on(Socket.EVENT_DISCONNECT, args -> {
-                Log.e(TAG, " Socket disconnected! Reason: " + Arrays.toString(args));
-            });
-
-            mSocket.on(Socket.EVENT_CONNECT_ERROR, args -> {
-                Log.e(TAG, "Socket connect error: " + Arrays.toString(args));
             });
 
             mSocket.on("remote", args -> {
@@ -151,15 +134,16 @@ public class RemoteController {
     private void handleCommand(String decryptedMessage) {
         try {
             JSONObject json = new JSONObject(decryptedMessage);
-            String msg = json.optString("message", "");
+            String msg = json.optString("message", "").toLowerCase();
             if (msg.contains("intent$")) {
-                remoteControls.handleActivityByKey(msg.split("\\$")[1].toLowerCase(), currentActivity);
-                return;
-            } else if (msg.contains("package$")) {
-                remoteControls.handlePackageByKey(msg.split("\\$")[1], appContext);
+                remoteControls.handleActivityByKey(msg.split("\\$")[1], currentActivity);
                 return;
             }
-            String command = getCommand(msg.toLowerCase());
+//            else if (msg.contains("package$")) {
+//                remoteControls.handlePackageByKey(msg.split("\\$")[1], currentActivity);
+//                return;
+//            }
+            String command = getCommand(msg);
             if (!command.isEmpty() && currentActivity != null) {
                 currentActivity.runOnUiThread(() -> {
                     switch (command) {
@@ -169,37 +153,37 @@ public class RemoteController {
                         case "down":
                         case "channel_down":
                         case "channel_up":
-                            remoteControls.handleNavigate(command);
+                            remoteControls.handleNavigate(command, currentActivity);
                             break;
                         case "ok":
-                            remoteControls.handleOk();
+                            remoteControls.handleOk(currentActivity);
                             break;
                         case "back":
-                            remoteControls.handleBack();
+                        case "close_keyback":
+                            remoteControls.handleBack(command, currentActivity);
                             break;
                         case "volume_up":
-                            remoteControls.handleVolumeUp();
+                            remoteControls.handleVolumeUp(currentActivity);
                             break;
                         case "volume_down":
-                            remoteControls.handleVolumeDown();
+                            remoteControls.handleVolumeDown(currentActivity);
                             break;
                         case "mute":
-                            remoteControls.handleMute();
+                            remoteControls.handleMute(currentActivity);
                             break;
                         case "number_input":
-                            String digit = msg.toLowerCase().replace("number button clicked: ", "").trim();
-                            Log.d("RemoteControls", digit);
-                            remoteControls.handleNumberInput(digit);
+                            String digit = msg.replace("number button clicked: ", "").trim();
+                            remoteControls.handleNumberInput(digit, currentActivity);
                             break;
                         case "text_input":
-                            String text = msg.toLowerCase().replace("text button clicked: ", "").trim();
-                            remoteControls.handleTextInput(text);
+                            String text = msg.replace("text button clicked: ", "").trim();
+                            remoteControls.handleTextInput(text, currentActivity);
                             break;
                         case "space":
-                            remoteControls.handleSpace();
+                            remoteControls.handleSpace(currentActivity);
                             break;
                         case "remove":
-                            remoteControls.handleRemove();
+                            remoteControls.handleRemove(currentActivity);
                             break;
                         case "no_key":
                             break;

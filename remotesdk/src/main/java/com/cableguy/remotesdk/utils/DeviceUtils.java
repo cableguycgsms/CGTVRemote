@@ -7,9 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.net.wifi.WifiManager;
 import android.provider.Settings;
-import android.text.format.Formatter;
 import android.util.Log;
 
 public class DeviceUtils {
@@ -22,12 +20,6 @@ public class DeviceUtils {
         );
 
         return androidId;
-    }
-
-    public static String getDeviceIp(Context context) {
-        WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        int ipInt = wifiManager.getConnectionInfo().getIpAddress();
-        return Formatter.formatIpAddress(ipInt);
     }
 
     public static void launchAppActivity(String packageActivity, Context context) {

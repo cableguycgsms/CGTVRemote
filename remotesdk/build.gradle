@@ -55,9 +55,6 @@ java {
 }
 
 dependencies {
-    implementation(fileTree("libs") {
-        include("*.jar")
-    })
     implementation('io.socket:socket.io-client:2.0.1') { exclude group: 'org.json', module: 'json' }
     implementation 'com.google.zxing:core:3.5.2'
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
